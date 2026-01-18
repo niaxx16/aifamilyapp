@@ -1,0 +1,28 @@
+# IDE
+.idea/
+
+# Windows
+nul
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Claude Code local data
+.claude/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.log
