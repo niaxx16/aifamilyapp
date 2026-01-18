@@ -174,7 +174,7 @@ const AIMentorScreen: React.FC = () => {
     mode: ConversationMode,
     conversationHistory: Message[]
   ): Promise<string> => {
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     const systemPrompt = mode === 'quick'
       ? `Sen bir AI ebeveynlik danışmanısın. Ebeveynlerin çocuklarıyla AI kullanımı konusunda yaşadıkları sorunlara hızlı, pratik ve uygulanabilir çözümler sunuyorsun.
