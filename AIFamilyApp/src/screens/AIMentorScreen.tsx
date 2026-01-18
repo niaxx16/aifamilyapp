@@ -37,8 +37,7 @@ const AIMentorScreen: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [remainingMessages, setRemainingMessages] = useState<number>(DAILY_MESSAGE_LIMIT);
+    const [remainingMessages, setRemainingMessages] = useState<number>(DAILY_MESSAGE_LIMIT);
 
   useEffect(() => {
     // Load daily usage on mount
@@ -203,11 +202,6 @@ const AIMentorScreen: React.FC = () => {
     }
   };
 
-  const handleVoiceInput = () => {
-    // TODO: Implement voice input using expo-speech or react-native-voice
-    setIsListening(!isListening);
-    alert('Sesli giriş özelliği yakında eklenecek! 🎤');
-  };
 
   // Mode Selection Screen
   if (mode === null) {
@@ -345,13 +339,6 @@ const AIMentorScreen: React.FC = () => {
 
       {/* Input Area */}
       <View style={[styles.inputContainer, { paddingBottom: insets.bottom + 12 }]}>
-        <TouchableOpacity
-          style={[styles.voiceButton, isListening && styles.voiceButtonActive]}
-          onPress={handleVoiceInput}
-        >
-          <Text style={styles.voiceButtonText}>🎤</Text>
-        </TouchableOpacity>
-
         <TextInput
           style={styles.input}
           value={inputText}
@@ -582,21 +569,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-  },
-  voiceButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  voiceButtonActive: {
-    backgroundColor: '#FF5252',
-  },
-  voiceButtonText: {
-    fontSize: 24,
   },
   input: {
     flex: 1,
