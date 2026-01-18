@@ -70,3 +70,55 @@ npm run ios        # iOS simulator
 - Gamification: Puan ve rozet sistemi mevcut
 - Video icerikleri expo-av ile oynatiliyor
 - Tum veriler Supabase'de saklanıyor
+
+---
+
+## AI Mentor Konfigurasyonu (Güncel: Ocak 2026)
+
+### Supabase Edge Function
+- **Function Adı:** `quick-api`
+- **URL:** `https://ssfjcnotebecmwtxjryt.supabase.co/functions/v1/quick-api`
+- **Kullanılan Model:** `gemini-2.5-flash` (gemini-2.0-flash kota sorunu yaşıyordu)
+- **Secret:** `GEMINI_API_KEY` (Supabase Dashboard > Project Settings > Edge Functions > Secrets)
+
+### Önemli
+- API key **KOD İÇİNDE DEĞİL**, Supabase secrets'ta saklanıyor
+- AIMentorScreen.tsx `supabase.functions.invoke('quick-api', ...)` kullanıyor
+- Günlük mesaj limiti: 5 mesaj (AsyncStorage ile takip ediliyor)
+
+### Edge Function Dosyası
+- Yerel: `supabase/functions/ai-mentor/index.ts`
+- Supabase'de: `quick-api` olarak deploy edilmiş
+
+---
+
+## İçerik Durumu
+
+### Dersler
+- 33 ders, 5 kategoride tamamlanmış
+
+### Etkinlikler
+- Hafta 1-7: Tüm yaş grupları için tamamlanmış
+- 8-9 yaş: Hafta 1-8 tamamlanmış
+- 10-11 yaş: Hafta 1-7 tamamlanmış (Hafta 8 eksik)
+
+### Bekleyen SQL Dosyaları (commit edilmemiş)
+- `insert-week3-activities-10-11.sql`
+- `insert-week4-activities-10-11.sql`
+- `insert-week5-activities-10-11.sql`
+- `insert-week6-activities-10-11.sql`
+- `insert-week7-activities-10-11.sql`
+
+---
+
+## Supabase Bilgileri
+- **Project URL:** `https://ssfjcnotebecmwtxjryt.supabase.co`
+- **Project Ref:** `ssfjcnotebecmwtxjryt`
+
+---
+
+## Son Yapılan Değişiklikler (18 Ocak 2026)
+1. API key koddan kaldırıldı, Supabase Edge Function'a taşındı
+2. Gemini modeli gemini-2.5-flash olarak güncellendi
+3. Mikrofon butonu AI Mentor'dan kaldırıldı
+4. .env.example güncellendi (GEMINI_API_KEY artık gerekli değil client'ta)
