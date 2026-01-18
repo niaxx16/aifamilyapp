@@ -26,7 +26,7 @@ type ConversationMode = 'quick' | 'roleplay' | null;
 
 const DAILY_MESSAGE_LIMIT = 5; // Günlük maksimum mesaj sayısı
 const USAGE_KEY = '@ai_mentor_usage';
-const GEMINI_API_KEY = 'AIzaSyBaY80vn41g3QoeZG1kysNBjAAjg_zteKQ';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
 const AIMentorScreen: React.FC = () => {
   const navigation = useNavigation();
