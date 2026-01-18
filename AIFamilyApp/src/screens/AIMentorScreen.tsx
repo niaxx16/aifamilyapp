@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../services/supabase';
 
 interface Message {
   id: string;
@@ -26,7 +27,6 @@ type ConversationMode = 'quick' | 'roleplay' | null;
 
 const DAILY_MESSAGE_LIMIT = 5; // Günlük maksimum mesaj sayısı
 const USAGE_KEY = '@ai_mentor_usage';
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
 const AIMentorScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -174,130 +174,31 @@ const AIMentorScreen: React.FC = () => {
     mode: ConversationMode,
     conversationHistory: Message[]
   ): Promise<string> => {
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-
-    const systemPrompt = mode === 'quick'
-      ? `Sen bir AI ebeveynlik danışmanısın. Ebeveynlerin çocuklarıyla AI kullanımı konusunda yaşadıkları sorunlara hızlı, pratik ve uygulanabilir çözümler sunuyorsun.
-
-      ÖNEMLİ KURALLAR:
-      - Cevapların 3-4 cümle ile sınırlı olmalı
-      - Konkret, uygulanabilir adımlar ver
-      - Kısa ve öz ol
-      - Empatiyle yaklaş ama fazla detaya girme
-      - Ebeveynin hemen uygulayabileceği 1-2 öneri sun`
-      : `Sen bir çocuk rolünde oynayan AI'sın. Ebeveynler seninle AI konusunda nasıl konuşacaklarını pratik yapmak için geliyorlar.
-
-      ÖNEMLİ KURALLAR:
-      - Ebeveynin belirttiği yaştaki çocuk rolüne gir ve o yaşa uygun davran
-      - Gerçekçi çocuk tepkileri ver (meraklı, savunmacı, inatçı, anlamayan vb.)
-      - Kısa ve doğal cevaplar ver (gerçek çocuklar uzun konuşmaz)
-      - Ebeveynin yaklaşımına göre farklı tepkiler göster
-      - İyi bir yaklaşımda yumuşa, kötü yaklaşımda kapan
-      - Konuşma bittiğinde [KOÇLUK MOD] ile kısa geri bildirim ver
-
-      ÖRNEK:
-      Ebeveyn: "ChatGPT ile sürekli konuşuyormuşsun, doğru mu?"
-      Sen (10 yaş): "Evet ama kötü bir şey yok ki! Sadece sorularımı soruyorum."
-
-      Ebeveyn iyi devam ederse:
-      Sen: "Tamam anladım anne/baba..." (yumuşar)
-
-      Ebeveyn kötü devam ederse:
-      Sen: "Ama herkes kullanıyor! Haksızlık!" (kapanır)`;
-
     try {
-      const response = await fetch(`${API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: [
-            ...conversationHistory.slice(-4).map(msg => ({
-              role: msg.role === 'user' ? 'user' : 'model',
-              parts: [{ text: msg.content }]
-            })),
-            {
-              role: 'user',
-              parts: [{ text: userInput }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: mode === 'quick' ? 600 : 1500,
-          },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_NONE"
-            }
-          ]
-        })
+      const { data, error } = await supabase.functions.invoke('quick-api', {
+        body: {
+          message: userInput,
+          mode: mode,
+          conversationHistory: conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
-        throw new Error(`API request failed: ${response.status} - ${JSON.stringify(errorData)}`);
+      if (error) {
+        console.error('Edge Function Error:', error);
+        throw new Error(error.message || 'Edge Function hatası');
       }
 
-      const data = await response.json();
-      console.log('API Response:', JSON.stringify(data, null, 2));
-
-      // Validate response structure
-      if (!data.candidates || data.candidates.length === 0) {
-        throw new Error('API yanıtında candidate bulunamadı');
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      const candidate = data.candidates[0];
-
-      // Check for blocked or incomplete responses
-      if (candidate.finishReason === 'MAX_TOKENS') {
-        throw new Error('Yanıt çok uzun oldu. Lütfen daha kısa bir mesaj deneyin.');
-      }
-
-      if (candidate.finishReason === 'SAFETY') {
-        throw new Error('Güvenlik filtreleri yanıtı engelledi. Lütfen farklı bir şekilde sorun.');
-      }
-
-      // Get text from response
-      if (!candidate.content) {
-        throw new Error('API yanıtında content bulunamadı');
-      }
-
-      // Try to get text from parts
-      if (candidate.content.parts && candidate.content.parts.length > 0) {
-        const text = candidate.content.parts[0].text;
-        if (text) return text;
-      }
-
-      // Try to get text directly
-      if (candidate.content.text) {
-        return candidate.content.text;
-      }
-
-      throw new Error(`API yanıt formatı beklenmeyen: ${JSON.stringify(candidate.content)}`);
+      return data.message;
 
     } catch (error: any) {
-      console.error('Gemini API Error:', error);
-      console.error('Error message:', error.message);
+      console.error('AI Mentor Error:', error);
       throw error;
     }
   };
