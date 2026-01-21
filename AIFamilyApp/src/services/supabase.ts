@@ -2,16 +2,9 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase yapılandırması - Environment variable'lardan alınıyor
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-// Zorunlu yapılandırma kontrolü
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Supabase yapılandırması eksik! .env dosyasında EXPO_PUBLIC_SUPABASE_URL ve EXPO_PUBLIC_SUPABASE_ANON_KEY tanımlı olmalı.'
-  );
-}
+// Supabase yapılandırması - Environment variable'lardan veya fallback değerlerden alınıyor
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://ssfjcnotebecmwtxjryt.supabase.co';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZmpjbm90ZWJlY213dHhqcnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE0OTcsImV4cCI6MjA3NzUzNzQ5N30._EvYLvMWIymslDyUxQFUzrUZzvOHNmxz71WTmPbqbrM';
 
 // Supabase client'i oluştur
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
