@@ -236,16 +236,38 @@ const FamilyContractScreen: React.FC = () => {
       return;
     }
 
-    if (!parentProfileId) {
-      Alert.alert('Hata', 'Ebeveyn profili bulunamadı.');
+    if (!user) {
+      Alert.alert('Hata', 'Oturum açmanız gerekiyor.');
       return;
     }
 
     setSaving(true);
 
     try {
+      // Her zaman güncel parent_profile_id'yi al
+      let currentParentProfileId = parentProfileId;
+
+      if (!currentParentProfileId) {
+        const { data: parentProfile, error: parentError } = await supabase
+          .from('parent_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (parentError) throw parentError;
+
+        if (!parentProfile) {
+          Alert.alert('Hata', 'Ebeveyn profili bulunamadı. Lütfen önce profil oluşturun.');
+          setSaving(false);
+          return;
+        }
+
+        currentParentProfileId = parentProfile.id;
+        setParentProfileId(currentParentProfileId);
+      }
+
       const contractData = {
-        parent_profile_id: parentProfileId,
+        parent_profile_id: currentParentProfileId,
         parent_name: parentName.trim(),
         child_name: childName.trim(),
         contract_date: contractDate,
