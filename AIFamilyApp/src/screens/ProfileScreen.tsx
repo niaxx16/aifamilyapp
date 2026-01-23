@@ -542,21 +542,21 @@ const ProfileScreen: React.FC = () => {
         {/* Çocuk Profilleri Listesi */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tüm Profiller</Text>
+            <Text style={styles.sectionTitle}>Çocuklarım</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => setShowAddModal(true)}
             >
-              <Text style={styles.addButtonText}>+ Yeni Profil</Text>
+              <Text style={styles.addButtonText}>+ Çocuk Ekle</Text>
             </TouchableOpacity>
           </View>
 
           {allChildren.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>👶</Text>
-              <Text style={styles.emptyText}>Henüz çocuk profili eklenmemiş</Text>
+              <Text style={styles.emptyEmoji}>👨‍👩‍👧‍👦</Text>
+              <Text style={styles.emptyText}>Çocuğunuz için profil oluşturun</Text>
               <Text style={styles.emptySubtext}>
-                Başlamak için yeni bir profil ekleyin
+                Her çocuğunuz için ayrı profil ekleyerek yaşa uygun içerikler sunabilirsiniz
               </Text>
             </View>
           ) : (
