@@ -686,12 +686,12 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.modalContent}>
             {/* Lakap */}
             <View style={styles.formSection}>
-              <Text style={styles.formLabel}>Lakap / İsim</Text>
+              <Text style={styles.formLabel}>Çocuğunuzun Adı veya Rumuz (Takma Adı)</Text>
               <TextInput
                 style={styles.input}
                 value={nickname}
                 onChangeText={setNickname}
-                placeholder="ör: Büyük kardeş, Küçük kardeş"
+                placeholder="ör: Ali, Ayşe, Minik Aslan"
                 placeholderTextColor="#9CA3AF"
                 autoCorrect={false}
                 autoCapitalize="words"
@@ -882,12 +882,12 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.modalContent}>
             {/* Lakap */}
             <View style={styles.formSection}>
-              <Text style={styles.formLabel}>Lakap / İsim</Text>
+              <Text style={styles.formLabel}>Çocuğunuzun Adı veya Rumuz (Takma Adı)</Text>
               <TextInput
                 style={styles.input}
                 value={nickname}
                 onChangeText={setNickname}
-                placeholder="ör: Büyük kardeş, Küçük kardeş"
+                placeholder="ör: Ali, Ayşe, Minik Aslan"
                 placeholderTextColor="#9CA3AF"
                 autoCorrect={false}
                 autoCapitalize="words"
