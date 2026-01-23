@@ -320,18 +320,43 @@ const ProfileScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await supabase
+              // Önce ilgili verileri sil
+              // 1. Tamamlanan aktiviteleri sil
+              await supabase
+                .from('completed_activities')
+                .delete()
+                .eq('parent_id', child.id);
+
+              // 2. Kullanıcı ilerlemesini sil
+              await supabase
+                .from('user_progress')
+                .delete()
+                .eq('parent_id', child.id);
+
+              // 3. Kazanılan rozetleri sil
+              await supabase
+                .from('earned_badges')
+                .delete()
+                .eq('parent_id', child.id);
+
+              // 4. Son olarak profili sil
+              const { data, error } = await supabase
                 .from('parent_profiles')
                 .delete()
-                .eq('id', child.id);
+                .eq('id', child.id)
+                .select();
 
               if (error) throw error;
 
+              if (!data || data.length === 0) {
+                throw new Error('Profil silinemedi. Yetki sorunu olabilir.');
+              }
+
               Alert.alert('Başarılı', 'Profil silindi.');
               await refreshChildren();
-            } catch (error) {
+            } catch (error: any) {
               console.error('Çocuk silinirken hata:', error);
-              Alert.alert('Hata', 'Profil silinirken bir hata oluştu.');
+              Alert.alert('Hata', error.message || 'Profil silinirken bir hata oluştu.');
             }
           },
         },
