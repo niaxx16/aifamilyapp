@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,13 @@ import {
   TextInput,
   Modal,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { supabase } from '../services/supabase';
+import { useChild } from '../context/ChildContext';
 
 interface ContractRule {
   id: string;
@@ -84,6 +89,7 @@ const CONTRACT_TEMPLATES: ContractTemplate[] = [
 
 const FamilyContractScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { activeChild } = useChild();
 
   const [hasContract, setHasContract] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -93,6 +99,50 @@ const FamilyContractScreen: React.FC = () => {
   const [parentName, setParentName] = useState('');
   const [childName, setChildName] = useState('');
   const [contractDate, setContractDate] = useState(new Date().toLocaleDateString('tr-TR'));
+
+  // Yeni state'ler
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [contractId, setContractId] = useState<string | null>(null);
+
+  // Mevcut sözleşmeyi yükle
+  const loadContract = useCallback(async () => {
+    if (!activeChild) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('family_contracts')
+        .select('*')
+        .eq('parent_profile_id', activeChild.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setContractId(data.id);
+        setParentName(data.parent_name);
+        setChildName(data.child_name);
+        setContractDate(data.contract_date);
+        setSelectedRules(data.rules as ContractRule[]);
+        setHasContract(true);
+      }
+    } catch (error) {
+      console.error('Sözleşme yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeChild]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadContract();
+    }, [loadContract])
+  );
 
   const startFromTemplate = (template: ContractTemplate) => {
     const rules: ContractRule[] = template.rules.map(rule => ({
@@ -153,7 +203,7 @@ const FamilyContractScreen: React.FC = () => {
     setSelectedRules([...selectedRules, ...allRules]);
   };
 
-  const saveContract = () => {
+  const saveContract = async () => {
     const activeRules = selectedRules.filter(r => r.selected);
 
     if (activeRules.length === 0) {
@@ -166,20 +216,209 @@ const FamilyContractScreen: React.FC = () => {
       return;
     }
 
-    // TODO: Save to database and generate PDF
-    Alert.alert(
-      'Sözleşme Kaydedildi! 🎉',
-      `${activeRules.length} kurallı AI Kullanım Sözleşmeniz hazır!\n\nİmzalayanlar:\n👨‍👩‍👧 ${parentName}\n👦 ${childName}\n\n📅 Tarih: ${contractDate}`,
-      [
-        {
-          text: 'PDF İndir',
-          onPress: () => {
-            Alert.alert('Yakında!', 'PDF indirme özelliği yakında eklenecek. Şimdilik ekran görüntüsü alabilirsiniz.');
+    if (!activeChild) {
+      Alert.alert('Hata', 'Aktif çocuk profili bulunamadı.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const contractData = {
+        parent_profile_id: activeChild.id,
+        parent_name: parentName.trim(),
+        child_name: childName.trim(),
+        contract_date: contractDate,
+        rules: selectedRules,
+      };
+
+      let result;
+
+      if (contractId) {
+        // Güncelle
+        result = await supabase
+          .from('family_contracts')
+          .update(contractData)
+          .eq('id', contractId)
+          .select()
+          .single();
+      } else {
+        // Yeni ekle
+        result = await supabase
+          .from('family_contracts')
+          .insert(contractData)
+          .select()
+          .single();
+      }
+
+      if (result.error) throw result.error;
+
+      if (result.data) {
+        setContractId(result.data.id);
+      }
+
+      Alert.alert(
+        'Sözleşme Kaydedildi! 🎉',
+        `${activeRules.length} kurallı AI Kullanım Sözleşmeniz kaydedildi!\n\nİmzalayanlar:\n👨‍👩‍👧 ${parentName}\n👦 ${childName}\n\n📅 Tarih: ${contractDate}`,
+        [
+          {
+            text: 'PDF Oluştur ve Paylaş',
+            onPress: generateAndSharePDF,
           },
-        },
-        { text: 'Tamam' },
-      ]
-    );
+          { text: 'Tamam' },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Sözleşme kaydedilirken hata:', error);
+      Alert.alert('Hata', error.message || 'Sözleşme kaydedilirken bir hata oluştu.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const generateAndSharePDF = async () => {
+    const activeRules = selectedRules.filter(r => r.selected);
+
+    const rulesHTML = activeRules.map((rule, index) => `
+      <div style="margin-bottom: 12px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
+        <span style="font-size: 18px; margin-right: 8px;">${rule.emoji}</span>
+        <span style="font-size: 14px;">${index + 1}. ${rule.text}</span>
+      </div>
+    `).join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>AI Kullanım Sözleşmesi</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 40px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+              border-bottom: 3px solid #1E3A8A;
+            }
+            .title {
+              font-size: 28px;
+              color: #1E3A8A;
+              margin-bottom: 10px;
+            }
+            .subtitle {
+              font-size: 16px;
+              color: #666;
+            }
+            .section {
+              margin-bottom: 30px;
+            }
+            .section-title {
+              font-size: 18px;
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 15px;
+              padding-bottom: 5px;
+              border-bottom: 1px solid #ddd;
+            }
+            .signatures {
+              display: flex;
+              justify-content: space-around;
+              margin-top: 50px;
+              padding-top: 30px;
+              border-top: 2px solid #1E3A8A;
+            }
+            .signature-box {
+              text-align: center;
+              width: 200px;
+            }
+            .signature-line {
+              border-bottom: 2px solid #333;
+              height: 60px;
+              margin-bottom: 10px;
+            }
+            .signature-name {
+              font-size: 16px;
+              font-weight: bold;
+            }
+            .signature-role {
+              font-size: 12px;
+              color: #666;
+            }
+            .date {
+              text-align: center;
+              margin-top: 30px;
+              font-size: 14px;
+              color: #666;
+            }
+            .footer {
+              text-align: center;
+              margin-top: 40px;
+              font-size: 12px;
+              color: #999;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">📜 AI Kullanım Sözleşmesi</div>
+            <div class="subtitle">Aile İçi Yapay Zeka Kullanım Kuralları</div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">📋 Kurallarımız (${activeRules.length} madde)</div>
+            ${rulesHTML}
+          </div>
+
+          <div class="section">
+            <div class="section-title">✍️ Taahhütler</div>
+            <p>Biz aşağıda imzası bulunan taraflar, yukarıdaki kuralları okuduğumuzu, anladığımızı ve bunlara uymayı kabul ettiğimizi beyan ederiz.</p>
+          </div>
+
+          <div class="signatures">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${parentName}</div>
+              <div class="signature-role">Ebeveyn</div>
+            </div>
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <div class="signature-name">${childName}</div>
+              <div class="signature-role">Çocuk</div>
+            </div>
+          </div>
+
+          <div class="date">
+            📅 Tarih: ${contractDate}
+          </div>
+
+          <div class="footer">
+            Bu sözleşme AI Aile Rehberi uygulaması ile oluşturulmuştur.
+          </div>
+        </body>
+      </html>
+    `;
+
+    try {
+      const { uri } = await Print.printToFileAsync({ html });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'AI Kullanım Sözleşmesi',
+          UTI: 'com.adobe.pdf',
+        });
+      } else {
+        Alert.alert('Başarılı', `PDF oluşturuldu: ${uri}`);
+      }
+    } catch (error) {
+      console.error('PDF oluşturulurken hata:', error);
+      Alert.alert('Hata', 'PDF oluşturulurken bir hata oluştu.');
+    }
   };
 
   const resetContract = () => {
@@ -191,7 +430,20 @@ const FamilyContractScreen: React.FC = () => {
         {
           text: 'Sıfırla',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            // Veritabanından sil
+            if (contractId) {
+              try {
+                await supabase
+                  .from('family_contracts')
+                  .delete()
+                  .eq('id', contractId);
+              } catch (error) {
+                console.error('Sözleşme silinirken hata:', error);
+              }
+            }
+
+            setContractId(null);
             setHasContract(false);
             setSelectedRules([]);
             setParentName('');
@@ -202,6 +454,16 @@ const FamilyContractScreen: React.FC = () => {
       ]
     );
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#1E3A8A" />
+        <Text style={{ marginTop: 16, color: '#666' }}>Yükleniyor...</Text>
+      </View>
+    );
+  }
 
   // No Contract State
   if (!hasContract) {
@@ -456,8 +718,16 @@ const FamilyContractScreen: React.FC = () => {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity style={styles.finalSaveButton} onPress={saveContract}>
-          <Text style={styles.finalSaveButtonText}>Sözleşmeyi Kaydet ve İmzala</Text>
+        <TouchableOpacity
+          style={[styles.finalSaveButton, saving && { opacity: 0.7 }]}
+          onPress={saveContract}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.finalSaveButtonText}>Sözleşmeyi Kaydet ve İmzala</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
