@@ -1083,16 +1083,16 @@ const ProfileScreen: React.FC = () => {
               </Text>
             </View>
 
-            <View style={styles.modalActions}>
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setShowEditParentModal(false)}
               >
                 <Text style={styles.cancelButtonText}>İptal</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                style={[styles.modalButton, styles.saveButton, (saving || !parentNickname.trim()) && styles.buttonDisabled]}
                 onPress={updateParentNickname}
                 disabled={saving || !parentNickname.trim()}
               >
