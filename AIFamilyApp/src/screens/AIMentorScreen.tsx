@@ -215,7 +215,11 @@ const AIMentorScreen: React.FC = () => {
           <View style={styles.placeholder} />
         </View>
 
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.introCard}>
             <Text style={styles.introTitle}>🤖 AI Akıllı Sohbet Asistanı</Text>
             <Text style={styles.introText}>
@@ -268,7 +272,7 @@ const AIMentorScreen: React.FC = () => {
               </Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -418,6 +422,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: 32,
+  },
+  contentContainer: {
+    paddingBottom: 40,
   },
   introCard: {
     backgroundColor: 'transparent',
