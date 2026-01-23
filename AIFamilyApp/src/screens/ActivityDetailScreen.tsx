@@ -771,7 +771,19 @@ const ActivityDetailScreen: React.FC<Props> = ({ route }) => {
       {activitySteps.length > 0 && (
         <View style={styles.stepsContainer}>
           <Text style={styles.sectionTitle}>📋 Ebeveyn İçin Adım Adım Uygulama Rehberi</Text>
-          <Text style={styles.stepsHint}>Her adımı tamamladıkça işaretleyin</Text>
+          <View style={styles.stepsHintBox}>
+            <Text style={styles.stepsHintIcon}>👆</Text>
+            <View style={styles.stepsHintContent}>
+              <Text style={styles.stepsHintTitle}>Adımlara dokunarak işaretleyin</Text>
+              <Text style={styles.stepsHintText}>
+                Tüm adımları tamamladığınızda "Etkinliği Tamamla" butonu aktif olacak
+              </Text>
+            </View>
+          </View>
+          <View style={styles.stepsProgressBar}>
+            <View style={[styles.stepsProgressFill, { width: `${(completedSteps.size / activitySteps.length) * 100}%` }]} />
+          </View>
+          <Text style={styles.stepsProgressText}>{completedSteps.size}/{activitySteps.length} adım tamamlandı</Text>
           {activitySteps.map((step) => (
             <TouchableOpacity
               key={step.step}
@@ -800,6 +812,9 @@ const ActivityDetailScreen: React.FC<Props> = ({ route }) => {
                 ]}>{step.title}</Text>
               </View>
               <Text style={styles.stepDescription}>{step.description}</Text>
+              {!completedSteps.has(step.step) && !isCompleted && (
+                <Text style={styles.stepTapHint}>👆 Tamamladıysanız dokunun</Text>
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -1085,11 +1100,52 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 20,
   },
-  stepsHint: {
+  stepsHintBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF3C7',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    alignItems: 'center',
+  },
+  stepsHintIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  stepsHintContent: {
+    flex: 1,
+  },
+  stepsHintTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  stepsHintText: {
+    fontSize: 13,
+    color: '#B45309',
+    lineHeight: 18,
+  },
+  stepsProgressBar: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  stepsProgressFill: {
+    height: '100%',
+    backgroundColor: '#10B981',
+    borderRadius: 4,
+  },
+  stepsProgressText: {
     fontSize: 13,
     color: '#6B7280',
     marginBottom: 16,
-    fontStyle: 'italic',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   stepCard: {
     backgroundColor: '#FFFFFF',
@@ -1147,6 +1203,13 @@ const styles = StyleSheet.create({
     color: '#4B5563',
     lineHeight: 22,
     marginLeft: 50,
+  },
+  stepTapHint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginLeft: 50,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   observationsContainer: {
     marginHorizontal: 20,
