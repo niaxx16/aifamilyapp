@@ -15,6 +15,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { supabase } from '../services/supabase';
 import { useChild } from '../context/ChildContext';
+import { useAuth } from '../context/AuthContext';
 
 interface ContractRule {
   id: string;
@@ -90,8 +91,10 @@ const CONTRACT_TEMPLATES: ContractTemplate[] = [
 const FamilyContractScreen: React.FC = () => {
   const navigation = useNavigation();
   const { activeChild } = useChild();
+  const { user } = useAuth();
 
   const [hasContract, setHasContract] = useState(false);
+  const [parentProfileId, setParentProfileId] = useState<string | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedRules, setSelectedRules] = useState<ContractRule[]>([]);
   const [customRuleText, setCustomRuleText] = useState('');
@@ -107,16 +110,33 @@ const FamilyContractScreen: React.FC = () => {
 
   // Mevcut sözleşmeyi yükle
   const loadContract = useCallback(async () => {
-    if (!activeChild) {
+    if (!user) {
       setLoading(false);
       return;
     }
 
     try {
+      // Önce parent_profile_id'yi al
+      const { data: parentProfile, error: parentError } = await supabase
+        .from('parent_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (parentError) throw parentError;
+
+      if (!parentProfile) {
+        setLoading(false);
+        return;
+      }
+
+      setParentProfileId(parentProfile.id);
+
+      // Sonra sözleşmeyi yükle
       const { data, error } = await supabase
         .from('family_contracts')
         .select('*')
-        .eq('parent_profile_id', activeChild.id)
+        .eq('parent_profile_id', parentProfile.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -136,7 +156,7 @@ const FamilyContractScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeChild]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -216,8 +236,8 @@ const FamilyContractScreen: React.FC = () => {
       return;
     }
 
-    if (!activeChild) {
-      Alert.alert('Hata', 'Aktif çocuk profili bulunamadı.');
+    if (!parentProfileId) {
+      Alert.alert('Hata', 'Ebeveyn profili bulunamadı.');
       return;
     }
 
@@ -225,7 +245,7 @@ const FamilyContractScreen: React.FC = () => {
 
     try {
       const contractData = {
-        parent_profile_id: activeChild.id,
+        parent_profile_id: parentProfileId,
         parent_name: parentName.trim(),
         child_name: childName.trim(),
         contract_date: contractDate,
