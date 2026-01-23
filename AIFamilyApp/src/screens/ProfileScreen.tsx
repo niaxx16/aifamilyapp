@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import Constants from 'expo-constants';
 import { supabase } from '../services/supabase';
 import { ChildProfile, ParentProfile, EarnedBadge } from '../types/database.types';
 import { useChild } from '../context/ChildContext';
@@ -658,7 +659,7 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
 
           <View style={styles.appVersion}>
-            <Text style={styles.appVersionText}>AI Aile Rehberi v1.0.0</Text>
+            <Text style={styles.appVersionText}>AI Aile Rehberi v{Constants.expoConfig?.version || '1.0.0'}</Text>
           </View>
         </View>
       </View>
