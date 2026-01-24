@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Activity {
   id: string;
@@ -289,6 +290,8 @@ const MONTHLY_THEMES: MonthlyTheme[] = [
   },
 ];
 
+const STORAGE_KEY = 'ai_calendar_completed_activities';
+
 const AICalendarScreen: React.FC = () => {
   const navigation = useNavigation();
 
@@ -296,25 +299,58 @@ const AICalendarScreen: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState<WeeklyTheme>(MONTHLY_THEMES[0].weeks[0]);
   const [showMonthSelector, setShowMonthSelector] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [completedActivities, setCompletedActivities] = useState<Set<string>>(new Set());
+
+  // Kaydedilmiş tamamlanan aktiviteleri yükle
+  const loadCompletedActivities = useCallback(async () => {
+    try {
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const completedIds = JSON.parse(saved) as string[];
+        setCompletedActivities(new Set(completedIds));
+      }
+    } catch (error) {
+      console.error('Takvim verisi yüklenirken hata:', error);
+    }
+  }, []);
+
+  // Sayfa her açıldığında yükle
+  useFocusEffect(
+    useCallback(() => {
+      loadCompletedActivities();
+    }, [loadCompletedActivities])
+  );
+
+  // Tamamlanan aktiviteleri kaydet
+  const saveCompletedActivities = async (completedIds: Set<string>) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([...completedIds]));
+    } catch (error) {
+      console.error('Takvim verisi kaydedilirken hata:', error);
+    }
+  };
 
   const toggleActivityCompletion = (activityId: string) => {
-    const updatedActivities = selectedWeek.activities.map(activity =>
-      activity.id === activityId ? { ...activity, completed: !activity.completed } : activity
-    );
+    const newCompleted = new Set(completedActivities);
 
-    const updatedWeek = { ...selectedWeek, activities: updatedActivities };
-    setSelectedWeek(updatedWeek);
+    if (newCompleted.has(activityId)) {
+      newCompleted.delete(activityId);
+    } else {
+      newCompleted.add(activityId);
+    }
 
-    // Update in the month data
-    const updatedWeeks = selectedMonth.weeks.map(week =>
-      week.id === selectedWeek.id ? updatedWeek : week
-    );
-    setSelectedMonth({ ...selectedMonth, weeks: updatedWeeks });
+    setCompletedActivities(newCompleted);
+    saveCompletedActivities(newCompleted);
+  };
+
+  // Aktivitenin tamamlanıp tamamlanmadığını kontrol et
+  const isActivityCompleted = (activityId: string) => {
+    return completedActivities.has(activityId);
   };
 
   const getCompletionStats = () => {
     const total = selectedWeek.activities.length;
-    const completed = selectedWeek.activities.filter(a => a.completed).length;
+    const completed = selectedWeek.activities.filter(a => isActivityCompleted(a.id)).length;
     return { total, completed, percentage: (completed / total) * 100 };
   };
 
@@ -402,49 +438,52 @@ const AICalendarScreen: React.FC = () => {
         <View style={styles.activitiesSection}>
           <Text style={styles.sectionTitle}>Bu Haftanın Aktiviteleri</Text>
 
-          {selectedWeek.activities.map((activity) => (
-            <TouchableOpacity
-              key={activity.id}
-              style={[
-                styles.activityCard,
-                activity.completed && styles.activityCardCompleted,
-                { borderLeftColor: getDayColor(activity.type) },
-              ]}
-              onPress={() => setSelectedActivity(activity)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.activityHeader}>
-                <View style={styles.activityDay}>
-                  <Text style={styles.activityDayLabel}>{activity.dayLabel}</Text>
-                  <Text style={styles.activityTypeEmoji}>{activity.typeEmoji}</Text>
-                </View>
-
-                <View style={styles.activityInfo}>
-                  <View style={styles.activityTitleRow}>
-                    <Text style={[styles.activityTitle, activity.completed && styles.activityTitleCompleted]}>
-                      {activity.title}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.activityCheckbox}
-                      onPress={() => toggleActivityCompletion(activity.id)}
-                    >
-                      {activity.completed ? (
-                        <Text style={styles.activityCheckboxChecked}>✓</Text>
-                      ) : (
-                        <View style={styles.activityCheckboxEmpty} />
-                      )}
-                    </TouchableOpacity>
+          {selectedWeek.activities.map((activity) => {
+            const completed = isActivityCompleted(activity.id);
+            return (
+              <TouchableOpacity
+                key={activity.id}
+                style={[
+                  styles.activityCard,
+                  completed && styles.activityCardCompleted,
+                  { borderLeftColor: getDayColor(activity.type) },
+                ]}
+                onPress={() => setSelectedActivity(activity)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.activityHeader}>
+                  <View style={styles.activityDay}>
+                    <Text style={styles.activityDayLabel}>{activity.dayLabel}</Text>
+                    <Text style={styles.activityTypeEmoji}>{activity.typeEmoji}</Text>
                   </View>
 
-                  <View style={styles.activityMeta}>
-                    <Text style={styles.activityMetaText}>{activity.typeLabel}</Text>
-                    <Text style={styles.activityMetaText}>•</Text>
-                    <Text style={styles.activityMetaText}>{activity.duration}</Text>
+                  <View style={styles.activityInfo}>
+                    <View style={styles.activityTitleRow}>
+                      <Text style={[styles.activityTitle, completed && styles.activityTitleCompleted]}>
+                        {activity.title}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.activityCheckbox}
+                        onPress={() => toggleActivityCompletion(activity.id)}
+                      >
+                        {completed ? (
+                          <Text style={styles.activityCheckboxChecked}>✓</Text>
+                        ) : (
+                          <View style={styles.activityCheckboxEmpty} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.activityMeta}>
+                      <Text style={styles.activityMetaText}>{activity.typeLabel}</Text>
+                      <Text style={styles.activityMetaText}>•</Text>
+                      <Text style={styles.activityMetaText}>{activity.duration}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Motivation */}
@@ -512,7 +551,7 @@ const AICalendarScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.modalCompleteButton,
-                  selectedActivity.completed && styles.modalCompleteButtonCompleted,
+                  isActivityCompleted(selectedActivity.id) && styles.modalCompleteButtonCompleted,
                 ]}
                 onPress={() => {
                   toggleActivityCompletion(selectedActivity.id);
@@ -520,7 +559,7 @@ const AICalendarScreen: React.FC = () => {
                 }}
               >
                 <Text style={styles.modalCompleteButtonText}>
-                  {selectedActivity.completed ? '✓ Tamamlandı' : 'Tamamla'}
+                  {isActivityCompleted(selectedActivity.id) ? '✓ Tamamlandı' : 'Tamamla'}
                 </Text>
               </TouchableOpacity>
             </View>
