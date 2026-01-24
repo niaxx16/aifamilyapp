@@ -192,15 +192,6 @@ const PracticeScreen: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#193140" />
-        <Text style={styles.loadingText}>Etkinlikler yükleniyor...</Text>
-      </View>
-    );
-  }
-
   if (allChildren.length === 0) {
     return (
       <ScrollView style={styles.container}>
@@ -235,6 +226,15 @@ const PracticeScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#193140" />
+        <Text style={styles.loadingText}>Etkinlikler yükleniyor...</Text>
+      </View>
     );
   }
 
