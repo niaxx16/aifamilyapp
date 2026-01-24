@@ -230,7 +230,7 @@ const PracticeScreen: React.FC = () => {
               style={styles.infoButton}
               onPress={() => navigation.navigate('Profile')}
             >
-              <Text style={styles.infoButtonText}>Profil Oluştur 👤</Text>
+              <Text style={styles.infoButtonText}>Çocuk Profili Oluştur 👤</Text>
             </TouchableOpacity>
           </View>
         </View>
