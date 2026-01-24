@@ -251,18 +251,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.emptyState}>
           <View style={styles.emptyIllustration}>
-            <Text style={styles.emptyEmoji}>👨‍👩‍👧‍👦</Text>
+            <Text style={styles.emptyEmoji}>👶</Text>
           </View>
-          <Text style={styles.emptyTitle}>Çocuk Profili Oluşturun</Text>
+          <Text style={styles.emptyTitle}>Çocuğunuzu Ekleyin</Text>
           <Text style={styles.emptyText}>
-            Başlamak için önce çocuğunuzun profilini oluşturmanız gerekiyor.
+            Hesabınız başarıyla oluşturuldu! 🎉
           </Text>
+          <Text style={styles.emptySubText}>
+            Şimdi çocuğunuzun yaş bilgisini girerek ona özel içeriklere erişim sağlayın.
+          </Text>
+          <View style={styles.emptyFeatures}>
+            <Text style={styles.emptyFeatureItem}>📚 Öğren bölümü - Yaşa uygun AI dersleri</Text>
+            <Text style={styles.emptyFeatureItem}>🎯 Uygula bölümü - Haftalık aile etkinlikleri</Text>
+            <Text style={styles.emptyFeatureItem}>📊 İlerleme takibi ve başarı rozetleri</Text>
+          </View>
           <TouchableOpacity
             style={styles.emptyButton}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Text style={styles.emptyButtonText}>Profil Oluştur</Text>
+            <Text style={styles.emptyButtonText}>Çocuk Ekle</Text>
           </TouchableOpacity>
+          <Text style={styles.emptyHint}>
+            Profil sayfasında "Çocuk Ekle" butonuna tıklayın
+          </Text>
         </View>
       </ScrollView>
     );
@@ -965,9 +976,36 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#32738C',
     textAlign: 'center',
-    marginBottom: 28,
+    marginBottom: 8,
     lineHeight: 22,
     paddingHorizontal: 20,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+    paddingHorizontal: 10,
+  },
+  emptyFeatures: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    width: '100%',
+  },
+  emptyFeatureItem: {
+    fontSize: 13,
+    color: '#193140',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  emptyHint: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 12,
   },
   emptyButton: {
     backgroundColor: '#F26B5E',
