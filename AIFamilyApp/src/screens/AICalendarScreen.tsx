@@ -385,11 +385,18 @@ const AICalendarScreen: React.FC = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Month Info */}
-        <View style={styles.monthCard}>
+        <TouchableOpacity
+          style={styles.monthCard}
+          onPress={() => setShowMonthSelector(true)}
+          activeOpacity={0.8}
+        >
           <Text style={styles.monthEmoji}>{selectedMonth.monthEmoji}</Text>
           <Text style={styles.monthTitle}>{selectedMonth.month}: {selectedMonth.title}</Text>
           <Text style={styles.monthDescription}>{selectedMonth.description}</Text>
-        </View>
+          <View style={styles.changeMonthButton}>
+            <Text style={styles.changeMonthButtonText}>Ay Değiştir 📅</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* Week Selector */}
         <View style={styles.weekSelectorSection}>
@@ -683,6 +690,18 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 20,
+    marginBottom: 12,
+  },
+  changeMonthButton: {
+    backgroundColor: '#F26B5E',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  changeMonthButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   weekSelectorSection: {
     paddingHorizontal: 16,
