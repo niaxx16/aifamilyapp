@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#E0FFFF',
-    fontSize: 14,
+    fontSize: 17,
+    fontWeight: '500',
   },
   linkText: {
     color: '#FFFFFF',
