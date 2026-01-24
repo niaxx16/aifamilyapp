@@ -373,12 +373,49 @@ const LearnScreen: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading && activeChild) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#193140" />
         <Text style={styles.loadingText}>Dersler yükleniyor...</Text>
       </View>
+    );
+  }
+
+  if (!activeChild) {
+    return (
+      <ScrollView style={styles.container}>
+        <ImageBackground
+          source={require('../../assets/learn-hero.png')}
+          style={styles.header}
+          imageStyle={styles.headerImage}
+          resizeMode="cover"
+        />
+        <View style={styles.content}>
+          <View style={styles.infoCard}>
+            <View style={styles.infoIconContainer}>
+              <Text style={styles.infoIcon}>📚</Text>
+            </View>
+            <Text style={styles.infoTitle}>Çocuk Profili Gerekli</Text>
+            <Text style={styles.infoText}>
+              Yaş grubuna uygun dersleri görebilmek için öncelikle çocuğunuzun profilini oluşturmanız gerekmektedir.
+            </Text>
+            <Text style={styles.infoSteps}>
+              <Text style={styles.infoStepBold}>Nasıl başlarım?</Text>
+              {'\n'}1. Profil sekmesine gidin
+              {'\n'}2. "Çocuk Ekle" butonuna tıklayın
+              {'\n'}3. Çocuğunuzun bilgilerini girin
+              {'\n'}4. Bu sayfaya geri dönerek dersleri keşfedin
+            </Text>
+            <TouchableOpacity
+              style={styles.infoButton}
+              onPress={() => navigation.navigate('Profile')}
+            >
+              <Text style={styles.infoButtonText}>Profil Oluştur 👤</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -825,6 +862,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     marginLeft: 2,
+  },
+  // Info Card Styles (No Child Profile)
+  infoCard: {
+    backgroundColor: '#FEF0EE',
+    padding: 24,
+    borderRadius: 16,
+    marginTop: 24,
+    borderWidth: 2,
+    borderColor: '#F26B5E',
+  },
+  infoIconContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  infoIcon: {
+    fontSize: 48,
+  },
+  infoTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#193140',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  infoText: {
+    fontSize: 15,
+    color: '#193140',
+    lineHeight: 22,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  infoSteps: {
+    fontSize: 14,
+    color: '#193140',
+    lineHeight: 22,
+    backgroundColor: '#F2BFAC',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  infoStepBold: {
+    fontWeight: 'bold',
+    fontSize: 15,
+    color: '#193140',
+  },
+  infoButton: {
+    backgroundColor: '#F26B5E',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  infoButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
 

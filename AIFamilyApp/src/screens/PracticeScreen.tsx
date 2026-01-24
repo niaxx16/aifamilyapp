@@ -222,7 +222,7 @@ const PracticeScreen: React.FC = () => {
             <Text style={styles.infoSteps}>
               <Text style={styles.infoStepBold}>Nasıl başlarım?</Text>
               {'\n'}1. Profil sekmesine gidin
-              {'\n'}2. "Yeni Profil" butonuna tıklayın
+              {'\n'}2. "Çocuk Ekle" butonuna tıklayın
               {'\n'}3. Çocuğunuzun bilgilerini girin
               {'\n'}4. Bu sayfaya geri dönerek etkinlikleri keşfedin
             </Text>

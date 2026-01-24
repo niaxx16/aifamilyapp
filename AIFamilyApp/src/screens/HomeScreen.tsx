@@ -251,14 +251,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.emptyState}>
           <View style={styles.emptyIllustration}>
-            <Text style={styles.emptyEmoji}>👶</Text>
+            <Text style={styles.emptyEmoji}>👨‍👩‍👧‍👦</Text>
           </View>
-          <Text style={styles.emptyTitle}>Çocuğunuzu Ekleyin</Text>
+          <Text style={styles.emptyTitle}>Çocuk Profili Ekleyin</Text>
           <Text style={styles.emptyText}>
             Hesabınız başarıyla oluşturuldu! 🎉
           </Text>
           <Text style={styles.emptySubText}>
-            Şimdi çocuğunuzun yaş bilgisini girerek ona özel içeriklere erişim sağlayın.
+            Şimdi çocuklarınızın yaş bilgisini girerek onlara özel içeriklere erişim sağlayın. Birden fazla çocuk profili ekleyebilirsiniz.
           </Text>
           <View style={styles.emptyFeatures}>
             <Text style={styles.emptyFeatureItem}>📚 Öğren bölümü - Yaşa uygun AI dersleri</Text>
@@ -269,10 +269,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             style={styles.emptyButton}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Text style={styles.emptyButtonText}>Çocuk Ekle</Text>
+            <Text style={styles.emptyButtonText}>Çocuk Profili Ekle</Text>
           </TouchableOpacity>
           <Text style={styles.emptyHint}>
-            Profil sayfasında "Çocuk Ekle" butonuna tıklayın
+            Profil sayfasında "Çocuk Ekle" butonuna tıklayarak başlayın
           </Text>
         </View>
       </ScrollView>
