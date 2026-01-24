@@ -18,6 +18,7 @@ interface LearningCategory {
   color: string;
   bgColor: string;
   subcategory: string;
+  disabled?: boolean;
 }
 
 interface Podcast {
@@ -144,7 +145,8 @@ const LEARNING_CATEGORIES: LearningCategory[] = [
     goal: 'Değerleri korumak',
     color: '#F26B5E',
     bgColor: '#FEF0EE',
-    subcategory: 'etik'
+    subcategory: 'etik',
+    disabled: true
   },
   {
     id: '5',
@@ -154,7 +156,8 @@ const LEARNING_CATEGORIES: LearningCategory[] = [
     goal: 'Sorumlu kullanmak',
     color: '#F26B5E',
     bgColor: '#FEF0EE',
-    subcategory: 'gelecek'
+    subcategory: 'gelecek',
+    disabled: true
   }
 ];
 
@@ -434,9 +437,34 @@ const LearnScreen: React.FC = () => {
           const categoryLessons = getLessonsByCategory(category.subcategory);
           const progress = getCategoryProgress(category.subcategory);
 
-          if (categoryLessons.length === 0) return null;
+          // Disabled olmayan kategoriler için ders yoksa gösterme
+          if (categoryLessons.length === 0 && !category.disabled) return null;
 
           const isExpanded = isCategoryExpanded(category.id);
+
+          // Disabled kategori için özel render
+          if (category.disabled) {
+            return (
+              <View key={category.id} style={styles.categorySection}>
+                <View
+                  style={[styles.categoryHeader, styles.categoryHeaderDisabled]}
+                >
+                  <View style={styles.categoryTitleRow}>
+                    <Text style={[styles.categoryEmoji, styles.categoryEmojiDisabled]}>{category.emoji}</Text>
+                    <View style={styles.categoryTitleContent}>
+                      <Text style={[styles.categoryName, styles.categoryNameDisabled]}>
+                        {category.name}
+                      </Text>
+                      <Text style={[styles.categoryTheme, styles.categoryThemeDisabled]}>"{category.theme}"</Text>
+                    </View>
+                    <View style={styles.comingSoonBadge}>
+                      <Text style={styles.comingSoonText}>Yakında</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            );
+          }
 
           return (
             <View key={category.id} style={styles.categorySection}>
@@ -631,6 +659,32 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  categoryHeaderDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.7,
+    elevation: 1,
+    shadowOpacity: 0.05,
+  },
+  categoryEmojiDisabled: {
+    opacity: 0.5,
+  },
+  categoryNameDisabled: {
+    color: '#9CA3AF',
+  },
+  categoryThemeDisabled: {
+    color: '#9CA3AF',
+  },
+  comingSoonBadge: {
+    backgroundColor: '#F26B5E',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  comingSoonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   categoryTitleRow: {
     flexDirection: 'row',
