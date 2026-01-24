@@ -17,6 +17,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../services/supabase';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const { width } = Dimensions.get('window');
 
@@ -57,8 +61,70 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: navProp }) => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Alert.alert('Yakında', `${provider} ile giriş özelliği yakında eklenecek`);
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+
+      const redirectUrl = makeRedirectUri({
+        scheme: 'aifamilyapp',
+        preferLocalhost: false,
+        isTripleSlashed: true,
+      });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl
+        );
+
+        if (result.type === 'success' && result.url) {
+          let params: URLSearchParams;
+
+          if (result.url.includes('#')) {
+            const hashPart = result.url.split('#')[1];
+            params = new URLSearchParams(hashPart);
+          } else {
+            const url = new URL(result.url);
+            params = url.searchParams;
+          }
+
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+
+          if (accessToken) {
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+
+            if (sessionError) throw sessionError;
+          } else {
+            const errorCode = params.get('error');
+            const errorDesc = params.get('error_description');
+            if (errorCode) {
+              throw new Error(errorDesc || errorCode);
+            }
+          }
+        } else if (result.type === 'cancel') {
+          Alert.alert('İptal', 'Giriş iptal edildi.');
+        }
+      }
+    } catch (error: any) {
+      console.error('Google giriş hatası:', error);
+      Alert.alert('Hata', error.message || 'Google ile giriş yapılamadı');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -95,48 +161,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: navProp }) => {
           <View style={styles.formContainer}>
             <Text style={styles.title}>Oturum aç</Text>
 
-            {/* Social Login Buttons */}
-            <View style={styles.socialContainer}>
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialLogin('Google')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}>G</Text>
-                <Text style={styles.socialLabel}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialLogin('Microsoft')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}>M</Text>
-                <Text style={styles.socialLabel}>Microsoft</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialLogin('Apple')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}></Text>
-                <Text style={styles.socialLabel}>Apple</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Email Button */}
+            {/* Google ile Giriş */}
             <TouchableOpacity
-              style={styles.emailButton}
-              onPress={() => {}}
+              style={styles.googleButton}
+              onPress={handleGoogleLogin}
               disabled={loading}
             >
-              <Text style={styles.emailButtonText}>İş e-postası ile devam et</Text>
+              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.googleButtonText}>Google hesabı ile giriş yap</Text>
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.dividerContainer}>
-              <Text style={styles.dividerText}>veya</Text>
+              <Text style={styles.dividerText}>veya e-posta ile</Text>
             </View>
 
             {/* Email Input */}
@@ -282,43 +319,27 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 24,
   },
-  socialContainer: {
+  googleButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 12,
-  },
-  socialButton: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  socialIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  socialLabel: {
-    fontSize: 12,
-    color: '#333',
-    fontWeight: '500',
-  },
-  emailButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
     marginBottom: 20,
   },
-  emailButtonText: {
-    color: '#000',
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+    marginRight: 12,
+  },
+  googleButtonText: {
     fontSize: 16,
+    color: '#333',
     fontWeight: '600',
   },
   dividerContainer: {
@@ -382,14 +403,15 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   loginButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#00a4c4',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 20,
   },
   loginButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#D0D0D0',
+    opacity: 0.7,
   },
   loginButtonText: {
     color: '#FFFFFF',
