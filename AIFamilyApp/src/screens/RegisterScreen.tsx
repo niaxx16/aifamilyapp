@@ -115,10 +115,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
     try {
       setLoading(true);
 
+      // Expo Go için proxy kullan, production için scheme kullan
       const redirectUrl = makeRedirectUri({
         scheme: 'aifamilyapp',
-        path: 'auth/callback',
+        preferLocalhost: false,
+        isTripleSlashed: true,
       });
+
+      console.log('Redirect URL:', redirectUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -136,10 +140,21 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
           redirectUrl
         );
 
+        console.log('Auth result:', result);
+
         if (result.type === 'success' && result.url) {
           // URL'den token'ları çıkar
-          const url = new URL(result.url);
-          const params = new URLSearchParams(url.hash.substring(1));
+          let params: URLSearchParams;
+
+          // Hash veya query string'den token'ları al
+          if (result.url.includes('#')) {
+            const hashPart = result.url.split('#')[1];
+            params = new URLSearchParams(hashPart);
+          } else {
+            const url = new URL(result.url);
+            params = url.searchParams;
+          }
+
           const accessToken = params.get('access_token');
           const refreshToken = params.get('refresh_token');
 
@@ -152,7 +167,16 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
             if (sessionError) throw sessionError;
 
             Alert.alert('Başarılı!', 'Google ile giriş yapıldı.');
+          } else {
+            // Token yoksa hata kodu kontrol et
+            const errorCode = params.get('error');
+            const errorDesc = params.get('error_description');
+            if (errorCode) {
+              throw new Error(errorDesc || errorCode);
+            }
           }
+        } else if (result.type === 'cancel') {
+          Alert.alert('İptal', 'Giriş iptal edildi.');
         }
       }
     } catch (error: any) {
@@ -204,7 +228,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
               disabled={loading}
             >
               <Text style={styles.googleIcon}>G</Text>
-              <Text style={styles.googleButtonText}>Google ile kayıt ol</Text>
+              <Text style={styles.googleButtonText}>Google hesabı ile kayıt ol</Text>
             </TouchableOpacity>
 
             {/* Divider */}
