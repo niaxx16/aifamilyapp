@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../services/supabase';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import { makeRedirectUri } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const { width } = Dimensions.get('window');
 
@@ -106,8 +111,56 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
     }
   };
 
-  const handleSocialRegister = (provider: string) => {
-    Alert.alert('Yakında', `${provider} ile kayıt özelliği yakında eklenecek`);
+  const handleGoogleRegister = async () => {
+    try {
+      setLoading(true);
+
+      const redirectUrl = makeRedirectUri({
+        scheme: 'aifamilyapp',
+        path: 'auth/callback',
+      });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl
+        );
+
+        if (result.type === 'success' && result.url) {
+          // URL'den token'ları çıkar
+          const url = new URL(result.url);
+          const params = new URLSearchParams(url.hash.substring(1));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+
+          if (accessToken) {
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+
+            if (sessionError) throw sessionError;
+
+            Alert.alert('Başarılı!', 'Google ile giriş yapıldı.');
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Google kayıt hatası:', error);
+      Alert.alert('Hata', error.message || 'Google ile giriş yapılamadı');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -147,7 +200,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
             {/* Google ile Kayıt */}
             <TouchableOpacity
               style={styles.googleButton}
-              onPress={() => handleSocialRegister('Google')}
+              onPress={handleGoogleRegister}
               disabled={loading}
             >
               <Text style={styles.googleIcon}>G</Text>
