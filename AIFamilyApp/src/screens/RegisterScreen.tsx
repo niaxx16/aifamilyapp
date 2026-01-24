@@ -32,7 +32,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptAge, setAcceptAge] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -79,7 +78,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
         options: {
           data: {
             email: email.trim(),
-            marketing_consent: acceptMarketing,
           },
         },
       });
@@ -303,20 +301,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
               <Text style={styles.checkboxText}>
                 <Text style={styles.requiredStar}>* </Text>
                 18 yaşından büyük olduğumu onaylıyorum.
-              </Text>
-            </TouchableOpacity>
-
-            {/* Marketing Consent - Opsiyonel */}
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setAcceptMarketing(!acceptMarketing)}
-              disabled={loading}
-            >
-              <View style={[styles.checkbox, acceptMarketing && styles.checkboxChecked]}>
-                {acceptMarketing && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxText}>
-                AI Family App ve bağlı şirketlerden bilgi, teklif, öneri ve güncellemeler almak istiyorum.
               </Text>
             </TouchableOpacity>
 
