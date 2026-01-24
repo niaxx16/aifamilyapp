@@ -518,14 +518,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   continueButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#00a4c4',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 20,
   },
   continueButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#D0D0D0',
+    opacity: 0.7,
   },
   continueButtonText: {
     color: '#FFFFFF',
