@@ -144,57 +144,19 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: navProp }) 
           <View style={styles.formContainer}>
             <Text style={styles.title}>Kaydol</Text>
 
-            {/* Social Register Buttons */}
-            <View style={styles.socialContainer}>
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialRegister('Google')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}>G</Text>
-                <Text style={styles.socialLabel}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialRegister('Microsoft')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}>M</Text>
-                <Text style={styles.socialLabel}>Microsoft</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialRegister('Apple')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}></Text>
-                <Text style={styles.socialLabel}>Apple</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialButton}
-                onPress={() => handleSocialRegister('Clever')}
-                disabled={loading}
-              >
-                <Text style={styles.socialIcon}>C</Text>
-                <Text style={styles.socialLabel}>Clever</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Email Button */}
+            {/* Google ile Kayıt */}
             <TouchableOpacity
-              style={styles.emailButton}
-              onPress={() => {}}
+              style={styles.googleButton}
+              onPress={() => handleSocialRegister('Google')}
               disabled={loading}
             >
-              <Text style={styles.emailButtonText}>İş e-postası ile devam et</Text>
+              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.googleButtonText}>Google ile kayıt ol</Text>
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.dividerContainer}>
-              <Text style={styles.dividerText}>veya</Text>
+              <Text style={styles.dividerText}>veya e-posta ile</Text>
             </View>
 
             {/* Email Input */}
@@ -383,43 +345,27 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 24,
   },
-  socialContainer: {
+  googleButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 8,
-  },
-  socialButton: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  socialIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  socialLabel: {
-    fontSize: 11,
-    color: '#333',
-    fontWeight: '500',
-  },
-  emailButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
     marginBottom: 20,
   },
-  emailButtonText: {
-    color: '#000',
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+    marginRight: 12,
+  },
+  googleButtonText: {
     fontSize: 16,
+    color: '#333',
     fontWeight: '600',
   },
   dividerContainer: {
