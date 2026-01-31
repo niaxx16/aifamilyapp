@@ -975,9 +975,8 @@ const ScenarioLibraryScreen: React.FC = () => {
             <ScrollView
               style={styles.modalContent}
               showsVerticalScrollIndicator={true}
-              contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
+              contentContainerStyle={{ paddingBottom: 40 }}
               bounces={true}
-              nestedScrollEnabled={true}
             >
               {/* Scenario Title */}
               <View style={styles.modalTitleSection}>
