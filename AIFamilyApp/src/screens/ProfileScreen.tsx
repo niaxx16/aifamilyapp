@@ -11,6 +11,7 @@ import {
   Modal,
   Image,
   ImageBackground,
+  Linking,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -632,10 +633,7 @@ const ProfileScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.settingsItem}
             onPress={() => {
-              Alert.alert(
-                'İletişim',
-                'Sorularınız için bize ulaşın:\n\nE-posta: destek@aifamilyapp.com\nWeb: www.aifamilyapp.com'
-              );
+              Linking.openURL('mailto:info@ailely.io?subject=Ailely%20Uygulama%20Destek');
             }}
           >
             <View style={styles.settingsItemLeft}>
