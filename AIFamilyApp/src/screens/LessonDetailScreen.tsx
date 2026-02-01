@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { Lesson, ModuleContent } from '../types/database.types';
@@ -36,6 +36,10 @@ const LessonDetailScreen: React.FC<Props> = ({ route }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [showVideo, setShowVideo] = useState(false);
   const confettiRef = useRef<any>(null);
+  const webViewRef = useRef<any>(null);
+  const videoContainerRef = useRef<View>(null);
+  const [videoSectionY, setVideoSectionY] = useState(0);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
 
   // Video URL'ini module_content'ten veya lesson.video_url'den al
   const videoUrl = (lesson.module_content as any)?.video_section?.url || lesson.video_url;
@@ -475,6 +479,37 @@ const LessonDetailScreen: React.FC<Props> = ({ route }) => {
   const moduleContent: ModuleContent | null = lesson.module_content || null;
   const hasModuleContent = !!moduleContent;
 
+  // Video pause on scroll functionality
+  const pauseVideo = () => {
+    if (webViewRef.current && !isVideoPaused) {
+      // Inject JavaScript to pause HTML5 video
+      const pauseScript = `
+        var video = document.querySelector('video');
+        if (video) {
+          video.pause();
+        }
+        true;
+      `;
+      webViewRef.current.injectJavaScript(pauseScript);
+      setIsVideoPaused(true);
+    }
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const videoThreshold = 250; // Video container height approximately
+
+    // If video is showing and user scrolled past the video section
+    if (showVideo && scrollY > videoThreshold && !isVideoPaused) {
+      pauseVideo();
+    }
+
+    // Reset pause state when user scrolls back to video section
+    if (scrollY < videoThreshold && isVideoPaused) {
+      setIsVideoPaused(false);
+    }
+  };
+
   // Video URL'sinin tipini belirle (YouTube mu, kendi sitesi mi?)
   const getVideoType = (url: string | null): 'youtube' | 'direct' | null => {
     if (!url) return null;
@@ -508,6 +543,8 @@ const LessonDetailScreen: React.FC<Props> = ({ route }) => {
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 120 }}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
     >
       {/* Konfeti ve Tebrik Mesajı */}
       {showConfetti && (
@@ -609,6 +646,7 @@ const LessonDetailScreen: React.FC<Props> = ({ route }) => {
               ) : (
                 // Direkt Video (MP4, WebM vb. - Supabase Storage)
                 <WebView
+                  ref={webViewRef}
                   style={styles.video}
                   javaScriptEnabled={true}
                   domStorageEnabled={true}
