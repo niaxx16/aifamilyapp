@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -959,7 +960,7 @@ const ScenarioLibraryScreen: React.FC = () => {
         onRequestClose={() => setSelectedScenario(null)}
       >
         {selectedScenario && (
-          <View style={styles.modalContainer}>
+          <SafeAreaView style={styles.modalContainer}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <TouchableOpacity
@@ -973,10 +974,13 @@ const ScenarioLibraryScreen: React.FC = () => {
             </View>
 
             <ScrollView
-              style={styles.modalContent}
+              style={{ flex: 1 }}
               showsVerticalScrollIndicator={true}
-              contentContainerStyle={{ paddingBottom: 40 }}
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
               bounces={true}
+              nestedScrollEnabled={true}
+              scrollEnabled={true}
+              removeClippedSubviews={false}
             >
               {/* Scenario Title */}
               <View style={styles.modalTitleSection}>
@@ -1103,7 +1107,7 @@ const ScenarioLibraryScreen: React.FC = () => {
                 <Text style={styles.expertText}>{selectedScenario.expertNote}</Text>
               </View>
             </ScrollView>
-          </View>
+          </SafeAreaView>
         )}
       </Modal>
     </View>
