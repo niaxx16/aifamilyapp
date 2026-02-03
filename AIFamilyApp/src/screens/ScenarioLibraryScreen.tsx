@@ -6,10 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Modal,
-  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const { width } = Dimensions.get('window');
 
@@ -772,13 +771,11 @@ const DIFFICULTY_FILTERS = [
 ];
 
 const ScenarioLibraryScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedAge, setSelectedAge] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
-  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
-  const [showGoodDialogue, setShowGoodDialogue] = useState(true);
 
   const filteredScenarios = SCENARIOS.filter((scenario) => {
     const categoryMatch = selectedCategory === 'all' || scenario.category === selectedCategory;
@@ -915,7 +912,7 @@ const ScenarioLibraryScreen: React.FC = () => {
               <TouchableOpacity
                 key={scenario.id}
                 style={[styles.scenarioCard, { borderLeftColor: categoryInfo?.color }]}
-                onPress={() => setSelectedScenario(scenario)}
+                onPress={() => navigation.navigate('ScenarioDetail', { scenario })}
                 activeOpacity={0.8}
               >
                 <View style={styles.scenarioCardHeader}>
@@ -952,164 +949,6 @@ const ScenarioLibraryScreen: React.FC = () => {
           })}
         </View>
       </ScrollView>
-
-      {/* Scenario Detail Modal */}
-      <Modal
-        visible={selectedScenario !== null}
-        animationType="slide"
-        onRequestClose={() => setSelectedScenario(null)}
-      >
-        {selectedScenario && (
-          <SafeAreaView style={styles.modalContainer}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <TouchableOpacity
-                onPress={() => setSelectedScenario(null)}
-                style={styles.modalBackButton}
-              >
-                <Text style={styles.modalBackButtonText}>←</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalHeaderTitle}>Senaryo Detayı</Text>
-              <View style={styles.placeholder} />
-            </View>
-
-            <ScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
-              bounces={true}
-              nestedScrollEnabled={true}
-              scrollEnabled={true}
-              removeClippedSubviews={false}
-            >
-              {/* Scenario Title */}
-              <View style={styles.modalTitleSection}>
-                <Text style={styles.modalEmoji}>{selectedScenario.emoji}</Text>
-                <Text style={styles.modalTitle}>{selectedScenario.title}</Text>
-                <Text style={styles.modalSituation}>{selectedScenario.situation}</Text>
-              </View>
-
-              {/* Characters */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>👥 Karakterler</Text>
-                <Text style={styles.modalSectionText}>
-                  {selectedScenario.characters.join(', ')}
-                </Text>
-              </View>
-
-              {/* Good Approach */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>✅ Doğru Yaklaşım</Text>
-                {selectedScenario.goodApproach.map((step, index) => (
-                  <Text key={index} style={styles.modalListItem}>
-                    {index + 1}. {step}
-                  </Text>
-                ))}
-              </View>
-
-              {/* Avoid Actions */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>❌ Bunlardan Kaçının</Text>
-                {selectedScenario.avoidActions.map((action, index) => (
-                  <Text key={index} style={styles.modalListItem}>
-                    • {action}
-                  </Text>
-                ))}
-              </View>
-
-              {/* Dialogue Tabs */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>💬 Örnek Diyalog</Text>
-
-                <View style={styles.dialogueTabs}>
-                  <TouchableOpacity
-                    style={[
-                      styles.dialogueTab,
-                      showGoodDialogue && styles.dialogueTabActive,
-                    ]}
-                    onPress={() => setShowGoodDialogue(true)}
-                  >
-                    <Text
-                      style={[
-                        styles.dialogueTabText,
-                        showGoodDialogue && styles.dialogueTabTextActive,
-                      ]}
-                    >
-                      ✅ İyi Yaklaşım
-                    </Text>
-                  </TouchableOpacity>
-
-                  {selectedScenario.alternativeEnding && (
-                    <TouchableOpacity
-                      style={[
-                        styles.dialogueTab,
-                        !showGoodDialogue && styles.dialogueTabActive,
-                      ]}
-                      onPress={() => setShowGoodDialogue(false)}
-                    >
-                      <Text
-                        style={[
-                          styles.dialogueTabText,
-                          !showGoodDialogue && styles.dialogueTabTextActive,
-                        ]}
-                      >
-                        ❌ Kötü Yaklaşım
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                {/* Dialogue Bubbles */}
-                <View style={styles.dialogueContainer}>
-                  {(showGoodDialogue
-                    ? selectedScenario.dialogue
-                    : selectedScenario.alternativeEnding || []
-                  ).map((exchange, index) => (
-                    <View key={index}>
-                      <View
-                        style={[
-                          styles.dialogueBubble,
-                          exchange.speaker === 'parent'
-                            ? styles.dialogueBubbleParent
-                            : styles.dialogueBubbleChild,
-                        ]}
-                      >
-                        <Text style={styles.dialogueSpeaker}>
-                          {exchange.speaker === 'parent' ? '👨‍👩‍👧 Ebeveyn' : '👦 Çocuk'}
-                        </Text>
-                        <Text style={styles.dialogueText}>{exchange.text}</Text>
-
-                        {exchange.variation && (
-                          <View style={styles.variationBox}>
-                            <Text style={styles.variationLabel}>🔄 Alternatif Tepki:</Text>
-                            <Text style={styles.variationText}>{exchange.variation}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* Parent Review */}
-              <View style={[styles.modalSection, styles.reviewSection]}>
-                <Text style={styles.modalSectionTitle}>⭐ Ebeveyn Yorumu</Text>
-                <Text style={styles.reviewStars}>
-                  {renderStars(selectedScenario.parentReview.rating)}
-                </Text>
-                <Text style={styles.reviewComment}>"{selectedScenario.parentReview.comment}"</Text>
-                <Text style={styles.reviewName}>- {selectedScenario.parentReview.name}</Text>
-              </View>
-
-              {/* Expert Note */}
-              <View style={[styles.modalSection, styles.expertSection]}>
-                <Text style={styles.modalSectionTitle}>👩‍🏫 Uzman Notu</Text>
-                <Text style={styles.expertText}>{selectedScenario.expertNote}</Text>
-              </View>
-            </ScrollView>
-          </SafeAreaView>
-        )}
-      </Modal>
     </View>
   );
 };
@@ -1313,183 +1152,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9B59B6',
     fontWeight: 'bold',
-  },
-  // Modal Styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 16,
-    backgroundColor: '#9B59B6',
-  },
-  modalBackButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalBackButtonText: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  modalHeaderTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  modalContent: {
-    flex: 1,
-  },
-  modalTitleSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    backgroundColor: '#F3E5F5',
-  },
-  modalEmoji: {
-    fontSize: 60,
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  modalSituation: {
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  modalSection: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  modalSectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
-  },
-  modalSectionText: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
-  },
-  modalListItem: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  dialogueTabs: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    gap: 8,
-  },
-  dialogueTab: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#F0F0F0',
-    alignItems: 'center',
-  },
-  dialogueTabActive: {
-    backgroundColor: '#9B59B6',
-  },
-  dialogueTabText: {
-    fontSize: 14,
-    color: '#666666',
-    fontWeight: '500',
-  },
-  dialogueTabTextActive: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  dialogueContainer: {
-    gap: 12,
-  },
-  dialogueBubble: {
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 4,
-  },
-  dialogueBubbleParent: {
-    backgroundColor: '#E3F2FD',
-    alignSelf: 'flex-start',
-    maxWidth: '85%',
-  },
-  dialogueBubbleChild: {
-    backgroundColor: '#FFF9C4',
-    alignSelf: 'flex-end',
-    maxWidth: '85%',
-  },
-  dialogueSpeaker: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#555555',
-    marginBottom: 6,
-  },
-  dialogueText: {
-    fontSize: 14,
-    color: '#333333',
-    lineHeight: 20,
-  },
-  variationBox: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-  },
-  variationLabel: {
-    fontSize: 11,
-    color: '#9B59B6',
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  variationText: {
-    fontSize: 13,
-    color: '#555555',
-    fontStyle: 'italic',
-    lineHeight: 18,
-  },
-  reviewSection: {
-    backgroundColor: '#FFF9E5',
-  },
-  reviewStars: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: '#333333',
-    fontStyle: 'italic',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  reviewName: {
-    fontSize: 13,
-    color: '#666666',
-    fontWeight: 'bold',
-  },
-  expertSection: {
-    backgroundColor: '#E8F5E9',
-  },
-  expertText: {
-    fontSize: 14,
-    color: '#333333',
-    lineHeight: 22,
   },
 });
 

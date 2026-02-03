@@ -34,7 +34,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>🆘</Text>
-            <Text style={styles.categoryTitle}>Acil Durum{'\n'}Rehberi (SOS)</Text>
+            <Text style={styles.categoryTitle} numberOfLines={2} adjustsFontSizeToFit>Acil Durum{'\n'}Rehberi (SOS)</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -47,7 +47,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>💬</Text>
-            <Text style={styles.categoryTitle}>Akıllı Sohbet{'\n'}Asistanı</Text>
+            <Text style={styles.categoryTitle} numberOfLines={2} adjustsFontSizeToFit>Akıllı Sohbet{'\n'}Asistanı</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -60,7 +60,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>📚</Text>
-            <Text style={styles.categoryTitleDark}>Senaryo{'\n'}Kütüphanesi</Text>
+            <Text style={styles.categoryTitleDark} numberOfLines={2} adjustsFontSizeToFit>Senaryo{'\n'}Kütüphanesi</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -73,7 +73,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>🎯</Text>
-            <Text style={styles.categoryTitleDark}>Kişisel Eylem{'\n'}Planı</Text>
+            <Text style={styles.categoryTitleDark} numberOfLines={2} adjustsFontSizeToFit>Kişisel Eylem{'\n'}Planı</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -86,7 +86,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>🗓️</Text>
-            <Text style={styles.categoryTitleDark}>AI Takvimi</Text>
+            <Text style={styles.categoryTitleDark} numberOfLines={2} adjustsFontSizeToFit>AI Takvimi</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -99,7 +99,7 @@ const GuideScreen: React.FC = () => {
             accessibilityRole="button"
           >
             <Text style={styles.categoryEmoji}>🏠</Text>
-            <Text style={styles.categoryTitle}>Aile{'\n'}Sözleşmesi</Text>
+            <Text style={styles.categoryTitle} numberOfLines={2} adjustsFontSizeToFit>Aile{'\n'}Sözleşmesi</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
