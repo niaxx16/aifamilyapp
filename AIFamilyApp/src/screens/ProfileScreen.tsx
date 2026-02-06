@@ -673,6 +673,9 @@ const ProfileScreen: React.FC = () => {
           style={styles.modalContainer}
           contentContainerStyle={{ paddingBottom: 200 }}
           showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          bounces={true}
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Yeni Çocuk Profili</Text>
@@ -865,6 +868,9 @@ const ProfileScreen: React.FC = () => {
           style={styles.modalContainer}
           contentContainerStyle={{ paddingBottom: 200 }}
           showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          bounces={true}
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Profili Düzenle</Text>

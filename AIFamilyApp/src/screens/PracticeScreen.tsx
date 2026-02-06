@@ -45,6 +45,7 @@ const PracticeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [viewingWeek, setViewingWeek] = useState(1); // Görüntülenen hafta
   const [maxAvailableWeek, setMaxAvailableWeek] = useState(1); // Veritabanındaki maksimum hafta
+  const [isAdvancingWeek, setIsAdvancingWeek] = useState(false); // Hafta geçişi sırasında true
 
   // Veritabanındaki maksimum hafta sayısını çek
   const fetchMaxAvailableWeek = async (childAge: number) => {
@@ -70,6 +71,9 @@ const PracticeScreen: React.FC = () => {
   // Sayfa her focus aldığında etkinlikleri yenile
   useFocusEffect(
     React.useCallback(() => {
+      // Hafta geçişi sırasında bu effect'i atla
+      if (isAdvancingWeek) return;
+
       // Aktif çocuğu kullan (ChildContext'ten gelen)
       const child = activeChild || (allChildren.length > 0 ? allChildren[0] : null);
 
@@ -79,7 +83,7 @@ const PracticeScreen: React.FC = () => {
         fetchActivitiesForChild(child, currentWeek);
         fetchMaxAvailableWeek(child.age);
       }
-    }, [activeChild, allChildren])
+    }, [activeChild, allChildren, isAdvancingWeek])
   );
 
   // Görüntülenen hafta değiştiğinde etkinlikleri yenile
@@ -158,6 +162,9 @@ const PracticeScreen: React.FC = () => {
     if (!activeChild) return;
 
     try {
+      // Hafta geçişi başladı - useFocusEffect'i engelle
+      setIsAdvancingWeek(true);
+
       const currentWeek = activeChild.current_week || 1;
       const nextWeek = currentWeek + 1;
 
@@ -169,13 +176,20 @@ const PracticeScreen: React.FC = () => {
 
       if (error) throw error;
 
-      // Context'i yenile
+      // Yeni haftayı göster
+      setViewingWeek(nextWeek);
+
+      // Yeni hafta için etkinlikleri çek
+      await fetchActivitiesForChild(activeChild, nextWeek);
+
+      // Context'i yenile ve bitene kadar bekle
       await refreshChildren();
 
-      // Yeni haftayı görüntüle
-      setViewingWeek(nextWeek);
+      // Hafta geçişi tamamlandı
+      setIsAdvancingWeek(false);
     } catch (error) {
       console.error('Sonraki haftaya geçerken hata:', error);
+      setIsAdvancingWeek(false);
     }
   };
 

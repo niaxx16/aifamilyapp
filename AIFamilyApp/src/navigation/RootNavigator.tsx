@@ -14,6 +14,7 @@ import SOSEmergencyScreen from '../screens/SOSEmergencyScreen';
 import AIMentorScreen from '../screens/AIMentorScreen';
 import ScenarioLibraryScreen from '../screens/ScenarioLibraryScreen';
 import ScenarioDetailScreen from '../screens/ScenarioDetailScreen';
+import EmergencyScenarioDetailScreen from '../screens/EmergencyScenarioDetailScreen';
 import ActionPlanScreen from '../screens/ActionPlanScreen';
 import AICalendarScreen from '../screens/AICalendarScreen';
 import FamilyContractScreen from '../screens/FamilyContractScreen';
@@ -97,6 +98,13 @@ const RootNavigator = () => {
         <Stack.Screen
           name="SOSEmergency"
           component={SOSEmergencyScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="EmergencyScenarioDetail"
+          component={EmergencyScenarioDetailScreen}
           options={{
             headerShown: false,
           }}

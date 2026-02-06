@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 interface EmergencyScenario {
   id: string;
@@ -172,19 +173,13 @@ const EMERGENCY_SCENARIOS: EmergencyScenario[] = [
   }
 ];
 
+type NavigationProp = StackNavigationProp<any>;
+
 const SOSEmergencyScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const [selectedScenario, setSelectedScenario] = useState<EmergencyScenario | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation<NavigationProp>();
 
   const handleScenarioPress = (scenario: EmergencyScenario) => {
-    setSelectedScenario(scenario);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-    setSelectedScenario(null);
+    navigation.navigate('EmergencyScenarioDetail', { scenario });
   };
 
   return (
@@ -237,82 +232,6 @@ const SOSEmergencyScreen: React.FC = () => {
           ))}
         </View>
       </ScrollView>
-
-      {/* Detail Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={closeModal}
-      >
-        {selectedScenario && (
-          <View style={styles.modalContainer}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalEmoji}>{selectedScenario.emoji}</Text>
-              <Text style={styles.modalTitle}>{selectedScenario.title}</Text>
-            </View>
-
-            <ScrollView
-              style={styles.modalContent}
-              contentContainerStyle={{ paddingBottom: 120 }}
-            >
-              {/* Situation */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>📌 Durum</Text>
-                <Text style={styles.modalText}>{selectedScenario.situation}</Text>
-              </View>
-
-              {/* Immediate Actions */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🚨 Hemen Yapmanız Gerekenler</Text>
-                {selectedScenario.immediateActions.map((action, index) => (
-                  <View key={index} style={styles.listItem}>
-                    <Text style={styles.listBullet}>•</Text>
-                    <Text style={styles.listText}>{action}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Talking Points */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>💬 Konuşma Önerileri</Text>
-                {selectedScenario.talkingPoints.map((point, index) => (
-                  <View key={index} style={styles.quoteItem}>
-                    <Text style={styles.quoteText}>{point}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Prevention Tips */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🛡️ Gelecekte Önlemek İçin</Text>
-                {selectedScenario.preventionTips.map((tip, index) => (
-                  <View key={index} style={styles.listItem}>
-                    <Text style={styles.listBullet}>•</Text>
-                    <Text style={styles.listText}>{tip}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Next Step - Action Plan */}
-              <View style={styles.nextStepCard}>
-                <View style={styles.nextStepHeader}>
-                  <Text style={styles.nextStepIcon}>✅</Text>
-                  <Text style={styles.nextStepTitle}>{selectedScenario.nextStep.title}</Text>
-                </View>
-                <Text style={styles.nextStepAction}>{selectedScenario.nextStep.action}</Text>
-                <View style={styles.nextStepFooter}>
-                  <Text style={styles.nextStepTimeframe}>⏰ {selectedScenario.nextStep.timeframe}</Text>
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        )}
-      </Modal>
     </View>
   );
 };
@@ -424,141 +343,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#FF4444',
-  },
-  // Modal Styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  modalHeader: {
-    backgroundColor: '#FF4444',
-    paddingTop: 48,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  modalCloseButton: {
-    position: 'absolute',
-    top: 48,
-    right: 24,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalCloseText: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  modalEmoji: {
-    fontSize: 60,
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  modalContent: {
-    flex: 1,
-    padding: 24,
-  },
-  modalSection: {
-    marginBottom: 24,
-  },
-  modalSectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
-  },
-  modalText: {
-    fontSize: 15,
-    color: '#666666',
-    lineHeight: 22,
-  },
-  listItem: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    paddingRight: 8,
-  },
-  listBullet: {
-    fontSize: 16,
-    color: '#FF4444',
-    marginRight: 8,
-    marginTop: 2,
-  },
-  listText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
-  },
-  quoteItem: {
-    backgroundColor: '#F5F5F5',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF4444',
-  },
-  quoteText: {
-    fontSize: 14,
-    color: '#333333',
-    fontStyle: 'italic',
-    lineHeight: 20,
-  },
-  // Next Step Card
-  nextStepCard: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 8,
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    elevation: 2,
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  nextStepHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  nextStepIcon: {
-    fontSize: 28,
-    marginRight: 8,
-  },
-  nextStepTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    flex: 1,
-  },
-  nextStepAction: {
-    fontSize: 15,
-    color: '#1B5E20',
-    lineHeight: 22,
-    marginBottom: 12,
-    fontWeight: '500',
-  },
-  nextStepFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  nextStepTimeframe: {
-    fontSize: 13,
-    color: '#388E3C',
-    fontWeight: 'bold',
-    backgroundColor: '#C8E6C9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
   },
 });
 
